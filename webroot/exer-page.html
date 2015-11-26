@@ -1,0 +1,40 @@
+<html>
+ <head>
+  <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+  <script>
+   $(document).ready(function() {
+     var element = $("#exercise");
+     
+     var getUrlParameter = function getUrlParameter(sParam) {
+     	var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+     	   sURLVariables = sPageURL.split('&'),
+        	sParameterName,
+        	i;
+
+     for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+      }
+	 };
+	 id = getUrlParameter('id');
+     $.get('/api/exercises/'.concat(id), function(page) {
+
+	   element.prepend('<p>' + page + '</p>');
+      
+       $("body").on("input", ".answer", function() {
+         alert("change !"); 
+       });
+     })
+   });
+  </script>
+ </head>
+ <body>
+  <div id="exercise">
+	  <textarea class="answer" rows=5>Your answser !</textarea>
+  </div>
+
+ </body>
+</html>
