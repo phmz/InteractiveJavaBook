@@ -1,7 +1,7 @@
 package upem;
 import java.io.IOException;
 
-import upem.parser.Parser;
+import fr.upem.jShell.JShellServer.Parser;
 
 public class Main {
 
