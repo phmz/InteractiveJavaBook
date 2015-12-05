@@ -1,9 +1,11 @@
 <html>
  <head>
   <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   <script>
    $(document).ready(function() {
-     var element = $("#exercise");
+     var element = $("#title");
      
      var getUrlParameter = function getUrlParameter(sParam) {
      	var sPageURL = decodeURIComponent(window.location.search.substring(1)),
@@ -24,7 +26,7 @@
 
 	   element.prepend('<p>' + page + '</p>');
       
-       $("body").on("input", ".answer", function() {
+       $("body").on("input", "#answer", function() {
          alert("change !"); 
        });
      })
@@ -32,8 +34,13 @@
   </script>
  </head>
  <body>
+  <div id="title" class="container" role="main">
+  </div>
   <div id="exercise">
-	  <textarea class="answer" rows=5>Your answser !</textarea>
+	  <textarea id="answer" rows=10>Your answser !</textarea>
+	  <button class='btn btn-primary btn-sm product-edit'>
+	  <span class='glyphicon glyphicon-pencil'></span>
+	  </button>
   </div>
 
  </body>

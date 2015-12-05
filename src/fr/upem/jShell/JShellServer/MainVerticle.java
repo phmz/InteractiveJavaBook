@@ -1,10 +1,12 @@
 package fr.upem.jShell.JShellServer;
 
+import java.io.IOException;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -13,6 +15,7 @@ import io.vertx.ext.web.handler.StaticHandler;
 
 public class MainVerticle extends AbstractVerticle {
 
+	public static final String appUrl = "10.184.181.175";
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -20,57 +23,95 @@ public class MainVerticle extends AbstractVerticle {
 	 */
 	@Override
 	public void start(Future<Void> startFuture) throws Exception {
-
+		
+		final int port = config().getInteger("http.port");
 		Router router = Router.router(vertx);
 
-		//router.route("/exercises/*").handler(StaticHandler.create("exercises"));
-		// Enables read body for all routes under "/api/whiskies
-		router.route("/api/exercises*").handler(BodyHandler.create());
+		/*
+		 * Files.walk(new File(".").toPath()) .filter(p -> !p.toString()
+		 * .contains(File.separator + ".")) .forEach(System.out::println);
+		 */
 
-		// Ajoute appel REST get pour l'index
-		router.get("/api/exercises").handler(this::readIndex);
-		router.get("/api/exercises/:id").handler(this::readOne);
-		
-		// Ajoute route aux resources statiques dans le dossier exercises
-		router.route().handler(StaticHandler.create());
-		
-		/*Files.walk(new File(".").toPath())
-	     .filter(p -> !p.toString()
-	                    .contains(File.separator + "."))
-	     .forEach(System.out::println);*/
-		
 		// Crée le serveur
-		vertx.createHttpServer().requestHandler(router::accept).listen(
-				// Récuper la port dans la configuration
-				// défaut 8080
-				config().getInteger("http.port", 8080), result -> {
+		vertx.createHttpServer()
+			.requestHandler(request -> {
+				//Check if remote client is in the same machine
+				if(accessControl(request)){
+					// Enables read body for all routes under "/api/exercises
+					router.route("/api/exercises*").handler(BodyHandler.create());
+
+					// Ajoute appel REST get pour l'index
+					router.get("/api/exercises").handler(this::readIndex);
+					// Route REST pour les requetes des exercises
+					router.get("/api/exercises/:id").handler(this::readOne);
+
+					// Ajoute route aux resources statiques dans le dossier exercises
+					router.route().handler(StaticHandler.create());
+					router.accept(request);
+				} else {
+					//If not, it won't receive our pages
+					router.route().handler(this::forbiddenAccess);
+					router.accept(request);
+				}
+			})			
+			.listen(
+				// Port  8989
+				port, appUrl, result -> {
 					if (result.succeeded()) {
-						startFuture.complete();
+						System.out.println("Server listening in: " + appUrl + ":" + port +"/");
 					} else {
 						startFuture.fail(result.cause());
 					}
 				});
 	}
 
+	// Récuper le fichier Json exercises.txt qui contient la liste des exercises
 	private void readIndex(RoutingContext routingContext) {
 		routingContext.response()
 			.putHeader("content-type", "application/json; charset=utf-8")
 			.sendFile("webroot/exercises.txt");
 	}
-	
+
+	//Handler get pour recuperer un exercise 
 	private void readOne(RoutingContext routingContext) {
 		String id = routingContext.request().getParam("id");
-		routingContext.response()
+		try {
+			String html = new Parser().createHTMLStringFromMarkdown("webroot/exercises/" + id + ".md");
+			routingContext.response()
 			.putHeader("content-type", "text/html; charset=utf-8")
-			.sendFile("webroot/exercises/" + id + ".txt");
+			.end(html);
+		} catch (IOException e) {
+			routingContext.response().setStatusCode(400).end();
+		}
 	}
 	
+	//Check if the client is in the same machine
+	private boolean accessControl(HttpServerRequest request){
+		System.out.println("Here i am");
+		String local = request.localAddress().host();
+		String remote = request.remoteAddress().host();
+		if(!local.equals(remote)){
+			System.out.println("received connection from: " + remote);
+			return false;
+		} 
+		System.out.println("Valid request from: " + remote);
+		return true;
+	}
+	
+	//Route for the case in which the client is not in the same machine
+	//(Access forbidden)
+	private void forbiddenAccess(RoutingContext context){
+		context.response().setStatusCode(403).setStatusMessage("Access Forbidden").end();
+	}
+	
+	
+
+	//Run and deploy our verticle
 	public static void main(String[] args) throws Exception {
-		int port = 8080;
-		
-		DeploymentOptions options = new DeploymentOptions()
-				.setConfig(new JsonObject().put("http.port", port));
-		
+		int port = 8989;
+
+		DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject().put("http.port", port));
+
 		Vertx vertx = Vertx.vertx();
 		vertx.deployVerticle(MainVerticle.class.getName(), options);
 	}

@@ -1,8 +1,6 @@
 package fr.upem.test.JShellServerTest;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,9 +22,7 @@ public class MainVerticleTest {
 	
 	@Before
 	public void setup(TestContext context) throws IOException{
-		ServerSocket socket = new ServerSocket(0);
-		port = socket.getLocalPort();
-		socket.close();
+		port = 8989;
 		
 		DeploymentOptions options = new DeploymentOptions()
 				.setConfig(new JsonObject().put("http.port", port));
@@ -44,7 +40,7 @@ public class MainVerticleTest {
 	public void testMyApplication(TestContext context){
 		final Async async = context.async();
 		
-		vertx.createHttpClient().getNow(port, "localhost", "/", 
+		vertx.createHttpClient().getNow(port, MainVerticle.appUrl, "/", 
 				response -> {
 					response.handler(body -> {
 						context.assertTrue(body.toString().contains("JShellBook"));
@@ -56,7 +52,7 @@ public class MainVerticleTest {
 	@Test
 	public void testAllExercises(TestContext context){
 		Async async = context.async();
-		vertx.createHttpClient().getNow(port, "localhost", "/api/exercises", response -> {
+		vertx.createHttpClient().getNow(port, MainVerticle.appUrl, "/api/exercises", response -> {
 		    context.assertEquals(response.statusCode(), 200);
 		    context.assertEquals(response.headers().get("content-type"), "application/json; charset=utf-8");
 		    response.bodyHandler(body -> {
@@ -65,4 +61,5 @@ public class MainVerticleTest {
 		    });
 		  });
 	}
+	
 }
