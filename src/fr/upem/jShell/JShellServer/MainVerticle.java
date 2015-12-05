@@ -87,14 +87,11 @@ public class MainVerticle extends AbstractVerticle {
 	
 	//Check if the client is in the same machine
 	private boolean accessControl(HttpServerRequest request){
-		System.out.println("Here i am");
 		String local = request.localAddress().host();
 		String remote = request.remoteAddress().host();
 		if(!local.equals(remote)){
-			System.out.println("received connection from: " + remote);
 			return false;
 		} 
-		System.out.println("Valid request from: " + remote);
 		return true;
 	}
 	
