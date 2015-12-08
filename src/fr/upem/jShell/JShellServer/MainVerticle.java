@@ -15,7 +15,7 @@ import io.vertx.ext.web.handler.StaticHandler;
 
 public class MainVerticle extends AbstractVerticle {
 
-	public static final String appUrl = "10.184.181.175";
+	public static final String appUrl = "localhost";
 	/*
 	 * (non-Javadoc)
 	 * 
