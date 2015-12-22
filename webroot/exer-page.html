@@ -1,8 +1,7 @@
 <html>
  <head>
   <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-<<<<<<< HEAD
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   <script>
    $(document).ready(function() {
@@ -30,7 +29,12 @@
        $("body").on("input", "#answer", function() {
          alert("change !"); 
        });
-     })
+     });
+     	$.when($.ajax('/api/exercises/update/'.concat(id)))
+     	.then(function(data, textStatus, jqXHR ) {
+     			$("p").remove();
+     			element.prepend('<p>' + data + '</p>');
+     	});
    });
   </script>
  </head>
@@ -42,41 +46,6 @@
 	  <button class='btn btn-primary btn-sm product-edit'>
 	  <span class='glyphicon glyphicon-pencil'></span>
 	  </button>
-=======
-  <script>
-   $(document).ready(function() {
-     var element = $("#exercise");
-     
-     var getUrlParameter = function getUrlParameter(sParam) {
-     	var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-     	   sURLVariables = sPageURL.split('&'),
-        	sParameterName,
-        	i;
-
-     for (i = 0; i < sURLVariables.length; i++) {
-        sParameterName = sURLVariables[i].split('=');
-
-        if (sParameterName[0] === sParam) {
-            return sParameterName[1] === undefined ? true : sParameterName[1];
-        }
-      }
-	 };
-	 id = getUrlParameter('id');
-     $.get('/api/exercises/'.concat(id), function(page) {
-
-	   element.prepend('<p>' + page + '</p>');
-      
-       $("body").on("input", ".answer", function() {
-         alert("change !"); 
-       });
-     })
-   });
-  </script>
- </head>
- <body>
-  <div id="exercise">
-	  <textarea class="answer" rows=5>Your answser !</textarea>
->>>>>>> refs/remotes/origin/master
   </div>
 
  </body>

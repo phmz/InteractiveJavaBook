@@ -1,7 +1,12 @@
 package fr.upem.jShell.JShellServer;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
+
+import fr.upem.jshell.watching.DirObserverFactory;
+import fr.upem.jshell.watching.DirObserverFactory.ExerciseWatcher;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
@@ -13,9 +18,10 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
-public class MainVerticle extends AbstractVerticle {
+public class MainVerticle extends AbstractVerticle implements ExerciseWatcher{
 
 	public static final String appUrl = "localhost";
+	private boolean alerted = false;
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -26,12 +32,12 @@ public class MainVerticle extends AbstractVerticle {
 		
 		final int port = config().getInteger("http.port");
 		Router router = Router.router(vertx);
-
+		
 		/*
 		 * Files.walk(new File(".").toPath()) .filter(p -> !p.toString()
 		 * .contains(File.separator + ".")) .forEach(System.out::println);
 		 */
-
+		
 		// Crée le serveur
 		vertx.createHttpServer()
 			.requestHandler(request -> {
@@ -44,6 +50,8 @@ public class MainVerticle extends AbstractVerticle {
 					router.get("/api/exercises").handler(this::readIndex);
 					// Route REST pour les requetes des exercises
 					router.get("/api/exercises/:id").handler(this::readOne);
+					//
+					router.get("/api/exercises/update/:id").handler(this::waitForUpdate);
 
 					// Ajoute route aux resources statiques dans le dossier exercises
 					router.route().handler(StaticHandler.create());
@@ -76,12 +84,40 @@ public class MainVerticle extends AbstractVerticle {
 	private void readOne(RoutingContext routingContext) {
 		String id = routingContext.request().getParam("id");
 		try {
+			Path filePath = Paths.get("webroot/exercises/" + id + ".md");
 			String html = new Parser().createHTMLStringFromMarkdown("webroot/exercises/" + id + ".md");
+			DirObserverFactory.getFactory().getDirObserver(Paths.get("webroot", "exercises"))
+				.register(filePath, this);
 			routingContext.response()
 			.putHeader("content-type", "text/html; charset=utf-8")
 			.end(html);
 		} catch (IOException e) {
 			routingContext.response().setStatusCode(400).end();
+		}
+	}
+	
+	private void waitForUpdate(RoutingContext routingContext) {
+		String id = routingContext.request().getParam("id");
+		String html;
+		synchronized (appUrl) {
+			while(!alerted){
+				try {
+					appUrl.wait();
+				} catch (InterruptedException e) {
+					//Do not send anything if interrupted
+					return;
+				}
+			}
+		}
+		try {
+			html = new Parser().createHTMLStringFromMarkdown("webroot/exercises/" + id + ".md");
+			routingContext.response()
+			.putHeader("content-type", "text/html; charset=utf-8")
+			.end(html);
+		} catch (IOException e) {
+			routingContext.response()
+			.setStatusCode(500)
+			.end();
 		}
 	}
 	
@@ -101,6 +137,12 @@ public class MainVerticle extends AbstractVerticle {
 		context.response().setStatusCode(403).setStatusMessage("Access Forbidden").end();
 	}
 	
+	public void alert(){
+		synchronized (appUrl) {
+			alerted = true;
+			appUrl.notify();
+		}
+	}
 	
 
 	//Run and deploy our verticle
@@ -112,4 +154,5 @@ public class MainVerticle extends AbstractVerticle {
 		Vertx vertx = Vertx.vertx();
 		vertx.deployVerticle(MainVerticle.class.getName(), options);
 	}
+	
 }
