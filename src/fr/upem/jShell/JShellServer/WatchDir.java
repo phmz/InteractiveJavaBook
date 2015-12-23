@@ -1,4 +1,4 @@
-package fr.upem.jshell.watching;
+package fr.upem.jShell.JShellServer;
 /*
  * Copyright (c) 2008, 2010, Oracle and/or its affiliates. All rights reserved.
  *
@@ -32,23 +32,22 @@ package fr.upem.jshell.watching;
 
 import java.nio.file.*;
 import static java.nio.file.StandardWatchEventKinds.*;
-import java.nio.file.attribute.*;
 import java.io.*;
 import java.util.*;
-import fr.upem.jshell.watching.DirObserverFactory.DirObserver;
-import fr.upem.jshell.watching.DirObserverFactory.ExerciseWatcher;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
+import io.vertx.core.eventbus.EventBus;
 
 /**
  * Example to watch a directory (or tree) for changes to files.
  */
 
-class WatchDir implements DirObserver{
+public class WatchDir extends AbstractVerticle{
 
-    private final WatchService watcher;
-    private final Map<WatchKey,Path> keys;
-    private final boolean recursive;
-    private boolean trace = false;
-    private final Map<Path, Set<ExerciseWatcher>> registered;
+    private WatchService watcher;
+    private Map<WatchKey,Path> keys;
+    private boolean trace = true;
+    private EventBus eb;
 
     @SuppressWarnings("unchecked")
     static <T> WatchEvent<T> cast(WatchEvent<?> event) {
@@ -56,27 +55,16 @@ class WatchDir implements DirObserver{
     }
     
     
-    /**
-     * Creates a WatchService and registers the given directory
-     */
-    WatchDir(Path dir, boolean recursive) throws IOException {
-        this.watcher = FileSystems.getDefault().newWatchService();
+    @Override
+	public void start(Future<Void> startFuture) throws Exception {
+    	this.watcher = FileSystems.getDefault().newWatchService();
         this.keys = new HashMap<WatchKey,Path>();
-        this.recursive = recursive;
-        this.registered = new HashMap<>();
-
-        if (recursive) {
-            System.out.format("Scanning %s ...\n", dir);
-            registerAll(dir);
-            System.out.println("Done.");
-        } else {
-            watch(dir);
-        }
-
-        // enable trace after initial registration
-        this.trace = true;
+        eb = vertx.eventBus();
+        watch(Paths.get("webroot", "exercises"));
         new Thread(this::processEvents).start();
     }
+
+
 
     /**
      * Register the given directory with the WatchService
@@ -96,40 +84,6 @@ class WatchDir implements DirObserver{
         keys.put(key, dir);
     }
     
-    /**
-     * Let a Verticle to register for a file
-     */
-    @Override
-    public void register(Path fileToWatch, ExerciseWatcher toRegister) {
-    	Set<ExerciseWatcher> values;
-    	if(registered.keySet().contains(fileToWatch)){
-    		values = registered.get(fileToWatch);
-    		System.out.println("Already registered");
-    	} else {
-    		values = new HashSet<>();
-    		registered.put(fileToWatch, values);
-    		System.out.println("Just registered for file " + fileToWatch);
-    	}
-    	values.add(toRegister);
-    }
-    
-    /**
-     * Register the given directory, and all its sub-directories, with the
-     * WatchService.
-     */
-    private void registerAll(final Path start) throws IOException {
-        // register directory and sub-directories
-        Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-                throws IOException
-            {
-                watch(dir);
-                return FileVisitResult.CONTINUE;
-            }
-        });
-    }
-
     /**
      * Process all events for keys queued to the watcher
      */
@@ -165,7 +119,7 @@ class WatchDir implements DirObserver{
 
                 // print out event
                 System.out.format("%s: %s\n", event.kind().name(), child);
-                alert(child);
+                eb.send("watch:" + child, "File edited!");
             }
 
             // reset key and remove from set if directory no longer accessible
@@ -180,17 +134,6 @@ class WatchDir implements DirObserver{
             }
         }
     }
-
-    private void alert(Path name) {
-    	Set<ExerciseWatcher> values = registered.get(name);
-    	System.out.println("alert: path=" + name);
-		if(values != null){
-			System.out.println("alert: set found");
-			for(ExerciseWatcher watcher : values){
-				watcher.alert();
-			}
-		}
-	}
 
 	static void usage() {
         System.err.println("usage: java WatchDir [-r] dir");
