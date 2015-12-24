@@ -12,7 +12,6 @@
 	<classpathentry kind="lib" path="libs/pegdown-1.6.0-javadoc.jar"/>
 	<classpathentry kind="lib" path="libs/pegdown-1.6.0-sources.jar"/>
 	<classpathentry kind="lib" path="libs/pegdown-1.6.0.jar"/>
-	<classpathentry kind="lib" path="/usr/lib/jvm/java-8-oracle/src.zip"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="vert.x-3.0.0/lib/jackson-annotations-2.5.0.jar"/>
 	<classpathentry kind="lib" path="vert.x-3.0.0/lib/jackson-core-2.5.3.jar"/>
@@ -30,5 +29,6 @@
 	<classpathentry kind="lib" path="vert.x-3.0.0/lib/vertx-unit-3.0.0.jar"/>
 	<classpathentry kind="lib" path="vert.x-3.0.0/lib/vertx-web-3.0.0.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="libs/jdk.jshell.jar" sourcepath="libs/jdk.jshell.zip"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
