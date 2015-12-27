@@ -3,6 +3,10 @@ package fr.upem.jShell.JShellServer;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.List;
+
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
@@ -51,6 +55,7 @@ public class MainVerticle extends AbstractVerticle {
 				router.get("/api/exercises/:id").handler(this::readOne);
 
 				router.post("/api/register/:id").handler(this::registerConsumer);
+				router.post("/api/solution/:id").handler(this::sendSolutionToExercise);
 
 				// Ajoute route aux resources statiques dans le dossier
 				// exercises
@@ -127,6 +132,15 @@ public class MainVerticle extends AbstractVerticle {
 			consumer.unregister();
 		});
 	}
+	
+	private void sendSolutionToExercise(RoutingContext routingContext){
+		final String id = routingContext.request().getParam("id");
+		routingContext.request().bodyHandler(buff -> {
+			QueryStringDecoder qsd = new QueryStringDecoder(buff.toString(), false);
+            Map<String, List<String>> params = qsd.parameters();
+            eb.send(EvalVerticle.EVAL_EXERCISE, id + ":" + params.get("code").get(0));
+		});
+	}
 
 	// Run and deploy our verticle
 	public static void main(String[] args) throws Exception {
@@ -137,6 +151,7 @@ public class MainVerticle extends AbstractVerticle {
 		Vertx vertx = Vertx.vertx();
 		vertx.deployVerticle(MainVerticle.class.getName(), options);
 		vertx.deployVerticle(WatchDir.class.getName());
+		vertx.deployVerticle(EvalVerticle.class.getName());
 	}
 
 }

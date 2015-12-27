@@ -3,8 +3,8 @@
   <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-  <script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
-<script src='vertx-eventbus.js'></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.0.3/sockjs.js"></script>
+<script src='js/vertx-eventbus.js'></script>
   
   <script>
    $(document).ready(function() {
@@ -29,32 +29,19 @@
 
 	   element.prepend('<p>' + page + '</p>');
       
-       $("body").on("input", "#answer", function() {
-         alert("change !"); 
+       $("#answer").keypress( function(e) {
+		if (e.which == 13) {
+			$.post('/api/solution/'.concat(id), { "code": $("#answer").val() }); 
+		}
        });
      });
      updatePage(id);
-   }
-   var eb = new EventBus('http://localhost:8080/eventbus');
-
-	eb.onopen = function() {
-
-  	// set a handler to receive a message
-  	eb.registerHandler('/api/register/'.concat(id), function(message) {
-    	console.log('received a message: ' + JSON.stringify(message);
-  	});
-
-  	// send a message
-  	eb.send('some-address', {name: 'tim', age: 587});
-
-	}
-   
-   );
-   
+}); 
+  
    function updatePage(id){
    		$.post('/api/register/'.concat(id), function(data){
-     		$("#title">"p").remove();
-     		$("#title").prepend('<p>' + data + '</p>');
+     		$("#title").empty();
+     		$("#title").prepend(data);
      		updatePage(id);
      	});
    }
