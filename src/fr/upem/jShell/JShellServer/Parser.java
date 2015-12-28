@@ -5,6 +5,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.stream.Stream;
 
 import org.pegdown.PegDownProcessor;
 
@@ -33,6 +35,21 @@ public class Parser {
 		String markdownSource = readFile(path, StandardCharsets.UTF_8);
 		String htmlFile = processor.markdownToHtml(markdownSource);
 		return htmlFile;
+	}
+	
+	public HashMap<String, String> readResultFile(String src) {
+		HashMap<String, String> map = new HashMap<>();
+		try (Stream<String> lines = Files.lines(Paths.get(src))) {
+			lines.forEach(s -> {
+				String[] tokens = s.split(" ");
+				if (tokens.length < 3) {
+					map.put(tokens[0], tokens[1]);
+				}
+			});
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return map;
 	}
 	
 }
