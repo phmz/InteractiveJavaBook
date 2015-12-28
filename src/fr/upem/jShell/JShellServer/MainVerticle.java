@@ -79,8 +79,13 @@ public class MainVerticle extends AbstractVerticle {
 
 	// Récuper le fichier Json exercises.txt qui contient la liste des exercises
 	private void readIndex(RoutingContext routingContext) {
-		routingContext.response().putHeader("content-type", "application/json; charset=utf-8")
-				.sendFile("webroot/exercises.txt");
+		MessageConsumer<String> consumer = eb.consumer(IndexVerticle.RESPONSE_INDEX);
+		consumer.handler(message -> {
+			routingContext.response().putHeader("content-type", "application/json; charset=utf-8")
+				.end(message.body().toString());
+			consumer.unregister();
+		});
+		eb.send(IndexVerticle.GET_INDEX, "give me the index");
 	}
 
 	// Handler get pour recuperer un exercise
@@ -114,7 +119,7 @@ public class MainVerticle extends AbstractVerticle {
 		String id = routingContext.request().getParam("id");
 		Path filePath = Paths.get("webroot/exercises/" + id + ".md");
 		
-		MessageConsumer<String> consumer = eb.consumer("watch:" + filePath);
+		MessageConsumer<String> consumer = eb.consumer(WatchDirVerticle.DIR_EDITED + ":" + filePath);
 		consumer.handler(message -> {
 			String content = "";
 			try {
@@ -150,8 +155,9 @@ public class MainVerticle extends AbstractVerticle {
 
 		Vertx vertx = Vertx.vertx();
 		vertx.deployVerticle(MainVerticle.class.getName(), options);
-		vertx.deployVerticle(WatchDir.class.getName());
+		vertx.deployVerticle(WatchDirVerticle.class.getName());
 		vertx.deployVerticle(EvalVerticle.class.getName());
+		vertx.deployVerticle(IndexVerticle.class.getName());
 	}
 
 }

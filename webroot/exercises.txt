@@ -1,6 +1,0 @@
-[
-	{ "id":0, "title":"Create your first class" },
-	{ "id":1, "title":"Insert properties" },
-	{ "id":2, "title":"Insert methods" },
-	{ "id":3, "title":"Try another thing" }
-]

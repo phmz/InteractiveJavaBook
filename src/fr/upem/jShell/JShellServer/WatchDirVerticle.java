@@ -31,6 +31,8 @@ package fr.upem.jShell.JShellServer;
  */
 
 import java.nio.file.*;
+import java.nio.file.WatchEvent.Kind;
+
 import static java.nio.file.StandardWatchEventKinds.*;
 import java.io.*;
 import java.util.*;
@@ -38,16 +40,16 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
 
-/**
- * Example to watch a directory (or tree) for changes to files.
- */
 
-public class WatchDir extends AbstractVerticle{
+public class WatchDirVerticle extends AbstractVerticle{
 
     private WatchService watcher;
     private Map<WatchKey,Path> keys;
     private boolean trace = true;
     private EventBus eb;
+    
+    public static final String WATCH_DIR = "fr.upem.jShell.register.dir";
+    public static final String DIR_EDITED = "fr.upem.jShell.register.edited";
 
     @SuppressWarnings("unchecked")
     static <T> WatchEvent<T> cast(WatchEvent<?> event) {
@@ -56,11 +58,21 @@ public class WatchDir extends AbstractVerticle{
     
     
     @Override
-	public void start(Future<Void> startFuture) throws Exception {
+	public void start(Future<Void> startFuture) throws IOException {
     	this.watcher = FileSystems.getDefault().newWatchService();
         this.keys = new HashMap<WatchKey,Path>();
         eb = vertx.eventBus();
+        eb.consumer(WATCH_DIR, message -> {
+        	try {
+				watch(Paths.get("webroot", message.body().toString()));
+			} catch (IOException e) {
+				//C'est possible faire rien, on écrit le probléme
+				//On ne veut pas planter l'exécution
+				System.err.println("Impossible watching dir " + message.body().toString());
+			}
+        });
         watch(Paths.get("webroot", "exercises"));
+        
         new Thread(this::processEvents).start();
     }
 
@@ -70,7 +82,7 @@ public class WatchDir extends AbstractVerticle{
      * Register the given directory with the WatchService
      */
     private void watch(Path dir) throws IOException {
-        WatchKey key = dir.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+        WatchKey key = dir.register(watcher, ENTRY_MODIFY);
         if (trace) {
             Path prev = keys.get(key);
             if (prev == null) {
@@ -82,6 +94,7 @@ public class WatchDir extends AbstractVerticle{
             }
         }
         keys.put(key, dir);
+        System.out.println("registered " + dir.toString());
     }
     
     /**
@@ -105,7 +118,7 @@ public class WatchDir extends AbstractVerticle{
             }
 
             for (WatchEvent<?> event: key.pollEvents()) {
-                WatchEvent.Kind kind = event.kind();
+                Kind<?> kind = event.kind();
 
                 // TBD - provide example of how OVERFLOW event is handled
                 if (kind == OVERFLOW) {
@@ -119,7 +132,7 @@ public class WatchDir extends AbstractVerticle{
 
                 // print out event
                 System.out.format("%s: %s\n", event.kind().name(), child);
-                eb.send("watch:" + child, "File edited!");
+                eb.send(DIR_EDITED + ":" + child, "File edited!");
             }
 
             // reset key and remove from set if directory no longer accessible
