@@ -25,13 +25,18 @@
       }
 	 };
 	 id = getUrlParameter('id');
-     $.get('/api/exercises/'.concat(id), function(page) {
-
+     $.get('/api/exercises/'.concat(id), function(jsonData) {
+	   var jsonObj = JSON.parse(jsonData);
+	   var page = jsonObj.question;
+	   var junit = jsonObj.tests;
 	   element.prepend('<p>' + page + '</p>');
       
        $("#answer").keypress( function(e) {
 		if (e.which == 13) {
-			$.post('/api/solution/'.concat(id), { "code": $("#answer").val() }); 
+			$.post('/api/solution/'.concat(id), { "code": $("#answer").val() }, function(data) {
+				$("#result").empty();
+				$("#result").prepend(data);
+			}); 
 		}
        });
      });
@@ -55,6 +60,8 @@
 	  <button class='btn btn-primary btn-sm product-edit'>
 	  <span class='glyphicon glyphicon-pencil'></span>
 	  </button>
+  </div>
+  <div id="result">
   </div>
 
  </body>

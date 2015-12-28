@@ -1,4 +1,3 @@
-
 public class Test0 {
 	
 	@Test
@@ -7,5 +6,5 @@ public class Test0 {
 		assertEquals(sum(10, 20), 30);
 		assertEquals(sum(8, 7), 15);
 	}
-
+	
 }

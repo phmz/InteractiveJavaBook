@@ -7,13 +7,9 @@ import jdk.jshell.SnippetEvent;
 
 public class SnippetEval {
 	
-	private JShell jshell;
+	private static JShell jshell = JShell.create();
 	
-	public SnippetEval() {
-		this.jshell = JShell.create();
-	}
-
-	public boolean compareMethod(String input, Map<String, String> map) {
+	public static boolean compareMethod(String input, Map<String, String> map) {
 			SnippetEvent se = jshell.eval(input).get(0);
 			if (se.status().equals(Status.REJECTED))
 				throw new IllegalArgumentException("Snippet status is rejected");
@@ -27,7 +23,7 @@ public class SnippetEval {
 			return true;
 	}
 
-	public boolean compareSnippet(String input, String result) {
+	public static boolean compareSnippet(String input, String result) {
 			SnippetEvent se = jshell.eval(input).get(0);
 			if (se.status().equals(Status.REJECTED)) {
 				throw new IllegalArgumentException("Snippet status is rejected");
@@ -35,7 +31,7 @@ public class SnippetEval {
 			return se.value().equals(result);
 	}
 
-	public String eval(String input) {
+	public static String eval(String input) {
 			SnippetEvent se = jshell.eval(input).get(0);
 			if (se.status().equals(Status.REJECTED)) {
 				throw new IllegalArgumentException("Snippet status is rejected");
@@ -43,7 +39,7 @@ public class SnippetEval {
 			return se.value();
 	}
 	
-	public void close() {
+	public static void close() {
 		jshell.close();
 	}
 

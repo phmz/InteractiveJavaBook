@@ -132,7 +132,7 @@ public class WatchDirVerticle extends AbstractVerticle{
 
                 // print out event
                 System.out.format("%s: %s\n", event.kind().name(), child);
-                eb.send(DIR_EDITED + ":" + child, "File edited!");
+                eb.publish(DIR_EDITED + ":" + child, "File edited!");
             }
 
             // reset key and remove from set if directory no longer accessible
@@ -146,11 +146,6 @@ public class WatchDirVerticle extends AbstractVerticle{
                 }
             }
         }
-    }
-
-	static void usage() {
-        System.err.println("usage: java WatchDir [-r] dir");
-        System.exit(-1);
     }
 
 }

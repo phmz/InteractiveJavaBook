@@ -6,25 +6,25 @@ import java.util.Objects;
 public class Exercise {
 	
 	static enum ExerciseKind {
-		LINE,
-		METHOD,
-		CLASS;
+		Snippet,
+		Method;
 	}
 
 	private final int id;
 	private final ExerciseKind kind;
 	private final String question;
 	private final Map<String, String> tests;
+	private final String junit;
 	
-	public Exercise(int id, ExerciseKind kind, String question, Map<String, String> tests){
+	Exercise(int id, ExerciseKind kind, String question, String junit, Map<String, String> tests){
 		if(id < 0){
 			throw new IllegalArgumentException("Exercise id must be positive: " + id);
 		}
 		this.id = id; 
 		this.kind = Objects.requireNonNull(kind);
 		this.question = Objects.requireNonNull(question);
-		//TODO insert Objects.requireNotNull when we have the tests
-		this.tests = tests;
+		this.junit = Objects.requireNonNull(junit);
+		this.tests = Objects.requireNonNull(tests);
 	}
 
 	
@@ -43,5 +43,9 @@ public class Exercise {
 
 	public Map<String, String> getTests() {
 		return tests;
+	}
+	
+	public String getJUnitTests() {
+		return junit;
 	}
 }

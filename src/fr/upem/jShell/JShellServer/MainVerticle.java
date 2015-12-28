@@ -1,8 +1,5 @@
 package fr.upem.jShell.JShellServer;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.List;
 
@@ -82,7 +79,7 @@ public class MainVerticle extends AbstractVerticle {
 		MessageConsumer<String> consumer = eb.consumer(IndexVerticle.RESPONSE_INDEX);
 		consumer.handler(message -> {
 			routingContext.response().putHeader("content-type", "application/json; charset=utf-8")
-				.end(message.body().toString());
+					.end(message.body().toString());
 			consumer.unregister();
 		});
 		eb.send(IndexVerticle.GET_INDEX, "give me the index");
@@ -91,12 +88,13 @@ public class MainVerticle extends AbstractVerticle {
 	// Handler get pour recuperer un exercise
 	private void readOne(RoutingContext routingContext) {
 		String id = routingContext.request().getParam("id");
-		try {
-			String html = new Parser().createHTMLStringFromMarkdown("webroot/exercises/" + id + ".md");
-			routingContext.response().putHeader("content-type", "text/html; charset=utf-8").end(html);
-		} catch (IOException e) {
-			routingContext.response().setStatusCode(400).end();
-		}
+		MessageConsumer<String> consumer = eb.consumer(ExerciseManagerVerticle.RETURN_EXERCISE + ":" + id);
+		consumer.handler(message -> {
+			routingContext.response().putHeader("content-type", "text/html; charset=utf-8")
+					.end(message.body().toString());
+			consumer.unregister();
+		});
+		eb.send(ExerciseManagerVerticle.GET_EXERCISE, id);
 	}
 
 	// Check if the client is in the same machine
@@ -115,35 +113,26 @@ public class MainVerticle extends AbstractVerticle {
 		context.response().setStatusCode(403).setStatusMessage("Access Forbidden").end();
 	}
 
-	private void registerConsumer(RoutingContext routingContext){
+	private void registerConsumer(RoutingContext routingContext) {
 		String id = routingContext.request().getParam("id");
-		Path filePath = Paths.get("webroot/exercises/" + id + ".md");
-		
-		MessageConsumer<String> consumer = eb.consumer(WatchDirVerticle.DIR_EDITED + ":" + filePath);
+		MessageConsumer<String> consumer = eb.consumer(ExerciseManagerVerticle.RETURN_EXERCISE_QUESTION + ":" + id);
 		consumer.handler(message -> {
-			String content = "";
-			try {
-				content = new Parser().createHTMLStringFromMarkdown(filePath.toString());
-			} catch (IOException e) {
-				routingContext.response()
-				.setStatusCode(500)
-				.end();
-			}
-			//Send the message as a response to the post call
-			routingContext.response()
-			.setStatusCode(200)
-			.end(content);
-			//unregister the consumer because it has already sent its response
+			routingContext.response().putHeader("content-type", "text/html; charset=utf-8")
+					.end(message.body().toString());
 			consumer.unregister();
 		});
 	}
-	
-	private void sendSolutionToExercise(RoutingContext routingContext){
+
+	private void sendSolutionToExercise(RoutingContext routingContext) {
 		final String id = routingContext.request().getParam("id");
+		MessageConsumer<String> consumer = eb.consumer(ExerciseManagerVerticle.EVALUATED+":"+id);
+		consumer.handler(message -> {
+				routingContext.response().end(message.body().toString());
+				consumer.unregister();});
 		routingContext.request().bodyHandler(buff -> {
 			QueryStringDecoder qsd = new QueryStringDecoder(buff.toString(), false);
-            Map<String, List<String>> params = qsd.parameters();
-            eb.send(EvalVerticle.EVAL_EXERCISE, id + ":" + params.get("code").get(0));
+			Map<String, List<String>> params = qsd.parameters();
+			eb.send(ExerciseManagerVerticle.EVAL_EXERCISE, id + ":" + params.get("code").get(0));
 		});
 	}
 
@@ -156,7 +145,7 @@ public class MainVerticle extends AbstractVerticle {
 		Vertx vertx = Vertx.vertx();
 		vertx.deployVerticle(MainVerticle.class.getName(), options);
 		vertx.deployVerticle(WatchDirVerticle.class.getName());
-		vertx.deployVerticle(EvalVerticle.class.getName());
+		vertx.deployVerticle(ExerciseManagerVerticle.class.getName());
 		vertx.deployVerticle(IndexVerticle.class.getName());
 	}
 
