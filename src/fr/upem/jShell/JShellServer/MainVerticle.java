@@ -127,8 +127,11 @@ public class MainVerticle extends AbstractVerticle {
 		final String id = routingContext.request().getParam("id");
 		MessageConsumer<String> consumer = eb.consumer(ExerciseManagerVerticle.EVALUATED+":"+id);
 		consumer.handler(message -> {
-				routingContext.response().end(message.body().toString());
-				consumer.unregister();});
+				String response = message.body().toString();
+				System.out.println("sendSolutionToExercise: " + response);
+				routingContext.response().end(response);
+				consumer.unregister();
+		});
 		routingContext.request().bodyHandler(buff -> {
 			QueryStringDecoder qsd = new QueryStringDecoder(buff.toString(), false);
 			Map<String, List<String>> params = qsd.parameters();

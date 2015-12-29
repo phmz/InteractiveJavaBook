@@ -24,7 +24,7 @@ public class ExerciseFactory {
 				readResultFile(Paths.get(dir.toString(), ""+id)
 						.resolve(files.getString("tests")));
 		String junit = Files.readAllLines(Paths.get(dir.toString(), ""+id).resolve(files.getString("junit")))
-				.stream().map(line -> line.replaceAll("\t", " ")).collect(Collectors.joining("\n"));
+				.stream().collect(Collectors.joining("\n"));
 		ExerciseKind kind = getKind(files.getString("kind"));
 		return new Exercise(id, kind, question, junit, results);
 	}

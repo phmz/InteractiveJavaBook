@@ -72,6 +72,7 @@ public class ExerciseManagerVerticle extends AbstractVerticle {
 		eb.consumer(EVAL_EXERCISE, message -> {
 			String[] s = message.body().toString().split(":");
 			int id = Integer.valueOf(s[0]);
+			System.out.println("EVAL_EXERCISE: id=" + id + "code="+s[1]);
 			try {
 				if (isCorrect(getExerciseById(id), s[1])) {
 					eb.send(EVALUATED+":"+id, "Correct");
