@@ -1,5 +1,16 @@
 <html>
  <head>
+ <style>
+ 	#junit {
+ 		position:absolute;
+ 		top: 11%;
+ 		left:50%;
+ 	}
+ 	
+ 	.hidden {
+ 	  visibility: hidden;
+ 	}
+ </style>
   <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
@@ -25,21 +36,34 @@
       }
 	 };
 	 id = getUrlParameter('id');
+	 var junit;
      $.get('/api/exercises/'.concat(id), function(jsonData) {
 	   var jsonObj = JSON.parse(jsonData);
 	   var page = jsonObj.question;
-	   var junit = jsonObj.tests;
-	   element.prepend('<p>' + page + '</p>');
-      
-       $("#answer").keypress( function(e) {
+	   junit = jsonObj.tests;
+	   element.prepend('<p>' + page + '</p>');    
+     });
+     $("#answer").keypress( function(e) {
 		if (e.which == 13) {
-			$.post('/api/solution/'.concat(id), { "code": $("#answer").val() }, function(data) {
+			$.post('/api/solution/'.concat(id), { "code": $("#answer").val() }, function( data, textStatus, jqXHR) {
+				$("#result").removeClass("hidden");
 				$("#result").empty();
 				$("#result").prepend(data);
-			}); 
+				if(data == "Correct"){
+				  $("#result").css("background-color", "green");	
+				} else {
+				  $("#result").css("background-color", "red");
+				}
+			}, "text"); 
 		}
-       });
-     });
+       }); 
+       $("#junit-button").click(function(event) {
+       		$("#junit").empty();
+       		$("#junit-area").append(junit);
+			$("#junit").append($("#junit-area"));
+			$("#junit-area").removeClass("hidden");
+     	}
+     );
      updatePage(id);
 }); 
   
@@ -55,14 +79,16 @@
  <body>
   <div id="title" class="container" role="main">
   </div>
-  <div id="exercise">
-	  <textarea id="answer" rows=10>Your answser !</textarea>
-	  <button class='btn btn-primary btn-sm product-edit'>
-	  <span class='glyphicon glyphicon-pencil'></span>
-	  </button>
+  <div id="exercise" class="container">
+	  <textarea id="answer" rows=20 cols=60>Your answser !</textarea>
   </div>
-  <div id="result">
+  <button id="result" value="" disabled="true" class="hidden">
+  </button>
+  <div id="junit">
+  	<button id="junit-button" class='btn btn-primary btn-sm product-edit'>
+		  Show JUnit!
+  	</button>
   </div>
-
+  <textarea readonly class="hidden" id="junit-area" rows=20 cols=40> </textarea>
  </body>
 </html>
