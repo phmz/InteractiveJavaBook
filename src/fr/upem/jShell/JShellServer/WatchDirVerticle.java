@@ -40,112 +40,103 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
 
+public class WatchDirVerticle extends AbstractVerticle {
 
-public class WatchDirVerticle extends AbstractVerticle{
+	private WatchService watcher;
+	private Map<WatchKey, Path> keys;
+	private EventBus eb;
 
-    private WatchService watcher;
-    private Map<WatchKey,Path> keys;
-    private boolean trace = true;
-    private EventBus eb;
-    
-    public static final String WATCH_DIR = "fr.upem.jShell.register.dir";
-    public static final String DIR_EDITED = "fr.upem.jShell.register.edited";
+	public static final String WATCH_DIR = "fr.upem.jShell.register.dir";
+	public static final String DIR_EDITED = "fr.upem.jShell.register.edited";
 
-    @SuppressWarnings("unchecked")
-    static <T> WatchEvent<T> cast(WatchEvent<?> event) {
-        return (WatchEvent<T>)event;
-    }
-    
-    
-    @Override
+	@SuppressWarnings("unchecked")
+	static <T> WatchEvent<T> cast(WatchEvent<?> event) {
+		return (WatchEvent<T>) event;
+	}
+
+	@Override
 	public void start(Future<Void> startFuture) throws IOException {
-    	this.watcher = FileSystems.getDefault().newWatchService();
-        this.keys = new HashMap<WatchKey,Path>();
-        eb = vertx.eventBus();
-        eb.consumer(WATCH_DIR, message -> {
-        	try {
+		this.watcher = FileSystems.getDefault().newWatchService();
+		this.keys = new HashMap<WatchKey, Path>();
+		eb = vertx.eventBus();
+		eb.consumer(WATCH_DIR, message -> {
+			try {
 				watch(Paths.get("webroot", message.body().toString()));
 			} catch (IOException e) {
-				//C'est possible faire rien, on écrit le probléme
-				//On ne veut pas planter l'exécution
+				// C'est possible faire rien, on écrit le probléme
+				// On ne veut pas planter l'exécution
 				System.err.println("Impossible watching dir " + message.body().toString());
 			}
-        });
-        watch(Paths.get("webroot", "exercises"));
-        
-        new Thread(this::processEvents).start();
-    }
+		});
+		watch(Paths.get("webroot", "exercises"));
 
+		new Thread(this::processEvents).start();
+	}
 
+	/**
+	 * Register the given directory with the WatchService
+	 */
+	private void watch(Path dir) throws IOException {
+		WatchKey key = dir.register(watcher, ENTRY_MODIFY);
+		Path prev = keys.get(key);
+		
+		if(prev != null) {
+			if (!dir.equals(prev)) {
+				System.out.format("update: %s -> %s\n", prev, dir);
+			}
+		}
+		keys.put(key, dir);
+	}
 
-    /**
-     * Register the given directory with the WatchService
-     */
-    private void watch(Path dir) throws IOException {
-        WatchKey key = dir.register(watcher, ENTRY_MODIFY);
-        if (trace) {
-            Path prev = keys.get(key);
-            if (prev == null) {
-                System.out.format("register: %s\n", dir);
-            } else {
-                if (!dir.equals(prev)) {
-                    System.out.format("update: %s -> %s\n", prev, dir);
-                }
-            }
-        }
-        keys.put(key, dir);
-        System.out.println("registered " + dir.toString());
-    }
-    
-    /**
-     * Process all events for keys queued to the watcher
-     */
-    void processEvents() {
-        for (;;) {
+	/**
+	 * Process all events for keys queued to the watcher
+	 */
+	void processEvents() {
+		for (;;) {
 
-            // wait for key to be signalled
-            WatchKey key;
-            try {
-                key = watcher.take();
-            } catch (InterruptedException x) {
-                return;
-            }
+			// wait for key to be signalled
+			WatchKey key;
+			try {
+				key = watcher.take();
+			} catch (InterruptedException x) {
+				return;
+			}
 
-            Path dir = keys.get(key);
-            if (dir == null) {
-                System.err.println("WatchKey not recognized!!");
-                continue;
-            }
+			Path dir = keys.get(key);
+			if (dir == null) {
+				System.err.println("WatchKey not recognized!!");
+				continue;
+			}
 
-            for (WatchEvent<?> event: key.pollEvents()) {
-                Kind<?> kind = event.kind();
+			for (WatchEvent<?> event : key.pollEvents()) {
+				Kind<?> kind = event.kind();
 
-                // TBD - provide example of how OVERFLOW event is handled
-                if (kind == OVERFLOW) {
-                    continue;
-                }
+				// TBD - provide example of how OVERFLOW event is handled
+				if (kind == OVERFLOW) {
+					continue;
+				}
 
-                // Context for directory entry event is the file name of entry
-                WatchEvent<Path> ev = cast(event);
-                Path name = ev.context();
-                Path child = dir.resolve(name);
+				// Context for directory entry event is the file name of entry
+				WatchEvent<Path> ev = cast(event);
+				Path name = ev.context();
+				Path child = dir.resolve(name);
 
-                // print out event
-                System.out.format("%s: %s\n", event.kind().name(), child);
-                eb.publish(DIR_EDITED + ":" + child, "File edited!");
-            }
+				// print out event
+				System.out.format("%s: %s\n", event.kind().name(), child);
+				eb.publish(DIR_EDITED + ":" + child, "File edited!");
+			}
 
-            // reset key and remove from set if directory no longer accessible
-            boolean valid = key.reset();
-            if (!valid) {
-                keys.remove(key);
+			// reset key and remove from set if directory no longer accessible
+			boolean valid = key.reset();
+			if (!valid) {
+				keys.remove(key);
 
-                // all directories are inaccessible
-                if (keys.isEmpty()) {
-                    break;
-                }
-            }
-        }
-    }
+				// all directories are inaccessible
+				if (keys.isEmpty()) {
+					break;
+				}
+			}
+		}
+	}
 
 }

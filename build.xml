@@ -1,0 +1,63 @@
+<project name="jshellbook" basedir="." default="main">
+	
+	<property name="lib.dir" value="libs"/>
+	<property name="vertx.dir" value="vert.x-3.0.0" />
+	<property name="src.dir" value="src"/>
+
+	<property name="classes.dir" value="classes"/>
+	<property name="jar.dir" value="jar"/>
+
+	<property name="main-class" value="fr.upem.jShell.JShellServer.MainVerticle"/>
+
+	
+	<path id="classpath">
+		<fileset dir="${lib.dir}" includes="**/*.jar"/>
+		<fileset dir="${vertx.dir}" includes="**/*.jar" />
+	</path>
+
+    <target name="clean">
+    	<delete includeEmptyDirs="true">
+       		<fileset dir="${classes.dir}" includes="**/*"/>
+       	</delete>
+    </target>
+
+    <target name="compile">
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" 
+        	classpathref="classpath" includeantruntime="false"/>
+    </target>
+
+    <target name="jar" depends="compile">
+    	<jar jarfile="${jar.dir}/dependencies-all.jar">
+    		<zipgroupfileset dir="${lib.dir}">
+    			<include name="**/*.jar" />
+    		</zipgroupfileset>
+    		<zipgroupfileset dir="${vertx.dir}">
+    		    <include name="**/*.jar" />
+    		</zipgroupfileset>
+    	</jar>
+        <jar jarfile="${jar.dir}/${ant.project.name}.jar" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${main-class}"/>
+            </manifest>
+        	<zipfileset src="${jar.dir}/dependencies-all.jar" 
+        		excludes="META-INF/*.SF" />
+        </jar>
+    	<delete file="${jar.dir}/dependencies-all.jar">
+    	</delete>
+    </target>
+
+    <target name="run" depends="jar">
+        <java fork="true" classname="${main-class}">
+    		<classpath>
+    			<path refid="classpath"/>
+    	 		<path location="${jar.dir}/${ant.project.name}.jar"/>
+    		</classpath>
+    	</java>
+    </target>
+	
+
+    <target name="clean-build" depends="clean,jar"/>
+
+    <target name="main" depends="clean,run"/>
+
+</project>

@@ -8,8 +8,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import fr.upem.jShell.JShellServer.Parser;
 import fr.upem.jShell.exercises.Exercise.ExerciseKind;
+import fr.upem.jShell.parser.Parser;
 import io.vertx.core.json.JsonObject;
 
 public class ExerciseFactory {
