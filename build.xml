@@ -6,6 +6,7 @@
 
 	<property name="classes.dir" value="classes"/>
 	<property name="jar.dir" value="jar"/>
+	<property name="docs.dir" value="docs"/>
 
 	<property name="main-class" value="fr.upem.jShell.JShellServer.MainVerticle"/>
 
@@ -21,7 +22,12 @@
        	</delete>
     </target>
 
-    <target name="compile">
+	<target name="doc" depends="">
+		<javadoc packagenames="fr.upem.jShell.*" access="public"
+			sourcepath="${src.dir}" destdir="${docs.dir}"/>
+	</target>
+	
+	<target name="compile">
         <javac srcdir="${src.dir}" destdir="${classes.dir}" 
         	classpathref="classpath" includeantruntime="false"/>
     </target>

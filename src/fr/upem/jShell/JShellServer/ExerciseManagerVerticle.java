@@ -38,7 +38,6 @@ public class ExerciseManagerVerticle extends AbstractVerticle {
 
 	private final List<Entry> exercises = new LinkedList<>();
 	private final int maxNumExercises = 20;
-	//public static final String CLIENT_REGISTER = "fr.upem.jShell.eval.register";
 	/**
 	 * Address used to ask to evaluate an exercise
 	 */
@@ -67,6 +66,8 @@ public class ExerciseManagerVerticle extends AbstractVerticle {
 	/**
 	 * Load the callback functions for listening to the eventbus.
 	 * Automatically called at deploying time by vertx.
+	 * 
+	 * 
 	 */
 	@Override
 	public void start(Future<Void> startFuture) throws Exception {

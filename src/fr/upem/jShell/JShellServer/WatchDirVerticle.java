@@ -63,6 +63,8 @@ public class WatchDirVerticle extends AbstractVerticle {
 	/**
 	 * Load the callback functions for listening to the eventbus.
 	 * Automatically called at deploying time by vertx.
+	 * 
+	 * @throws IOException if can't open a dir to watch
 	 */
 	@Override
 	public void start(Future<Void> startFuture) throws IOException {

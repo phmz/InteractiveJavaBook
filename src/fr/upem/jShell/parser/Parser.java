@@ -39,6 +39,7 @@ public class Parser {
 	 * Create a HTML string from a MarkDown file.
 	 * 
 	 * @param path the path of the source MarkDown file.
+	 * @return The String containing the html file content.
 	 * @throws IOException if an I/O error occurs reading from the file or a malformed or unmappable byte sequence is read
 	 */
 	public static String createHTMLStringFromMarkdown(Path path) throws IOException {

@@ -3,6 +3,11 @@ package fr.upem.jShell.exercises;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Stores data related to an exercise and provides get methods for accessing to it.
+ * @author mattia
+ *
+ */
 public class Exercise {
 	
 	static enum ExerciseKind {
@@ -27,24 +32,43 @@ public class Exercise {
 		this.tests = Objects.requireNonNull(tests);
 	}
 
-	
+	/**
+	 * 
+	 * @return The unique id of the exercise
+	 */
 	public int getId() {
 		return id;
 	}
 
+	/**
+	 * 
+	 * @return the stored kind of the exercise
+	 */
 	public ExerciseKind getKind() {
 		return kind;
 	}
 
 
+	/**
+	 * 
+	 * @return the question of the exercise
+	 */
 	public String getQuestion() {
 		return question;
 	}
 
+	/**
+	 * 
+	 * @return a map containing some unit tests as keys and their exected results as values
+	 */
 	public Map<String, String> getTests() {
 		return tests;
 	}
 	
+	/**
+	 * 
+	 * @return the class JUnit as a String
+	 */
 	public String getJUnitTests() {
 		return junit;
 	}
