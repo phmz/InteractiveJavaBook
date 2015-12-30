@@ -13,6 +13,9 @@ import jdk.jshell.SnippetEvent;
  */
 public class SnippetEval {
 
+	/**
+	 * The evaluation engine using the JShell library.
+	 */
 	private static ThreadLocal<JShell> jshell = new ThreadLocal<JShell>(){
 		@Override protected JShell initialValue() {
 			return JShell.create();
@@ -44,12 +47,12 @@ public class SnippetEval {
 		}
 		return true;
 	}
-
+	
 	/**
-	 * Evaluates a snippet and compares it against a result
-	 * @param input The snippet of java code
+	 * Compare the result produced by a snippet with expected result
+	 * @param input The code snippet to evaluate
 	 * @param result The expected result
-	 * @return true if the result of the evaluation is equal to result, false otherwise
+	 * @return True if the snippet produces result, false otherwise.
 	 */
 	public static boolean compareSnippet(String input, String result) {
 		SnippetEvent se = jshell.get().eval(input).get(0);
@@ -60,9 +63,10 @@ public class SnippetEval {
 	}
 
 	/**
-	 * Close the jshell object. It must be called when this class method are not needed anymore 
+	 * Close the JShell evaluation state engine. It must be called when this class method are not needed anymore 
 	 * in the thread.
 	 */
+
 	public static void close() {
 		jshell.get().close();
 	}
