@@ -13,6 +13,9 @@ import jdk.jshell.SnippetEvent;
  */
 public class SnippetEval {
 
+	/**
+	 * The evaluation engine using the JShell library.
+	 */
 	private static ThreadLocal<JShell> jshell = new ThreadLocal<JShell>(){
 		@Override protected JShell initialValue() {
 			return JShell.create();
@@ -44,21 +47,10 @@ public class SnippetEval {
 		}
 		return true;
 	}
-
+	
 	/**
-	 * Evaluates a snippet and compares it against a result
-	 * @param input The snippet of java code
-	 * @param result The expected result
-	 * @return true if the result of the evaluation is equal to result, false otherwise
+	 * Close the JShell evaluation state engine.
 	 */
-	public static boolean compareSnippet(String input, String result) {
-		SnippetEvent se = jshell.get().eval(input).get(0);
-		if (se.status().equals(Status.REJECTED)) {
-			throw new IllegalArgumentException("Snippet status is rejected");
-		}
-		return se.value().equals(result);
-	}
-
 	public static void close() {
 		jshell.get().close();
 	}
