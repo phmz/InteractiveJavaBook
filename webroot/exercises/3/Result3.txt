@@ -1,0 +1,3 @@
+removeSpaces("  ciao  ")%%%"ciao"
+removeSpaces("sal ut ")%%%"salut"
+removeSpaces("  tr  im  ")%%%"trim"
