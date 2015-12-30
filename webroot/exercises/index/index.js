@@ -1,7 +1,6 @@
 [
-	{ "id":0, "title":"Sum two numbers" },
-	{ "id":1, "title":"Insert properties" },
-	{ "id":2, "title":"Insert methods" },
-	{ "id":3, "title":"Try another thing" },
-	{ "id":4, "title":"A very simple snippet" }
+	{ "id":0, "title":"Somme" },
+	{ "id":1, "title":"On crée une classe!" },
+	{ "id":2, "title":"toString" },
+	{ "id":3, "title":"Pas d'espace!" },
 ]
