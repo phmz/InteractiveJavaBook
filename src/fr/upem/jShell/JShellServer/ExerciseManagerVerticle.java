@@ -122,16 +122,19 @@ public class ExerciseManagerVerticle extends AbstractVerticle {
 
 	private Entry loadExercise(Path path, int id) throws IOException{
 		Exercise exercise = ExerciseFactory.readExercise(path, id);
+		String toListen = path.resolve(String.valueOf(id))+"/"+(id+".md");
 		MessageConsumer<String> consumer = vertx.eventBus().consumer(
-				WatchDirVerticle.DIR_EDITED + ":" + path.resolve(String.valueOf(id)),
+				WatchDirVerticle.DIR_EDITED + ":" + toListen,
 				message -> {
 					invalidExercise(id);
 					try {
-						loadExercise(path, id);
+						Entry reloaded = loadExercise(path, id);
+						vertx.eventBus().send(RETURN_EXERCISE_QUESTION+":"+id, reloaded.exercise.getQuestion());
 					} catch (Exception e) {
 						throw new IllegalStateException("Recalling loadExercise produces exception!");
 					}
 				});
+		System.out.println("Listening for file: " + toListen);
 		Entry newEntry = new Entry(exercise, consumer);
 		synchronized (exercises) {
 			if(exercises.size() > maxNumExercises){

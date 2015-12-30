@@ -34,11 +34,6 @@ public class MainVerticle extends AbstractVerticle {
 		Router router = Router.router(vertx);
 		eb = vertx.eventBus();
 
-		/*
-		 * Files.walk(new File(".").toPath()) .filter(p -> !p.toString()
-		 * .contains(File.separator + ".")) .forEach(System.out::println);
-		 */
-
 		// Crée le serveur
 		vertx.createHttpServer().requestHandler(request -> {
 			// Check if remote client is in the same machine
@@ -115,6 +110,7 @@ public class MainVerticle extends AbstractVerticle {
 
 	private void registerConsumer(RoutingContext routingContext) {
 		String id = routingContext.request().getParam("id");
+		eb.send(WatchDirVerticle.WATCH_DIR, "exercises/"+id);
 		MessageConsumer<String> consumer = eb.consumer(ExerciseManagerVerticle.RETURN_EXERCISE_QUESTION + ":" + id);
 		consumer.handler(message -> {
 			routingContext.response().putHeader("content-type", "text/html; charset=utf-8")
