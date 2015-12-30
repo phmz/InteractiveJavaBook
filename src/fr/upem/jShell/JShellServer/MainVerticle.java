@@ -22,10 +22,9 @@ public class MainVerticle extends AbstractVerticle {
 	public static final String appUrl = "localhost";
 	private EventBus eb;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see io.vertx.core.AbstractVerticle#start(io.vertx.core.Future)
+	/**
+	 * Load the callback functions for listening to the eventbus and respond to REST requests.
+	 * Automatically called at deploying time by vertx.
 	 */
 	@Override
 	public void start(Future<Void> startFuture) throws Exception {
@@ -135,17 +134,18 @@ public class MainVerticle extends AbstractVerticle {
 		});
 	}
 
-	// Run and deploy our verticle
+	// Deploy the verticles
 	public static void main(String[] args) throws Exception {
 		int port = 8989;
 
 		DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject().put("http.port", port));
 
 		Vertx vertx = Vertx.vertx();
+		DeploymentOptions workerOptions = new DeploymentOptions().setWorker(true);
 		vertx.deployVerticle(MainVerticle.class.getName(), options);
-		vertx.deployVerticle(WatchDirVerticle.class.getName());
-		vertx.deployVerticle(ExerciseManagerVerticle.class.getName());
-		vertx.deployVerticle(IndexVerticle.class.getName());
+		vertx.deployVerticle(WatchDirVerticle.class.getName(), workerOptions);
+		vertx.deployVerticle(ExerciseManagerVerticle.class.getName(), workerOptions);
+		vertx.deployVerticle(IndexVerticle.class.getName(), workerOptions);
 	}
 
 }

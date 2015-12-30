@@ -46,7 +46,13 @@ public class WatchDirVerticle extends AbstractVerticle {
 	private Map<WatchKey, Path> keys;
 	private EventBus eb;
 
+	/**
+	 * EventBus address to use to require to watch a directory
+	 */
 	public static final String WATCH_DIR = "fr.upem.jShell.register.dir";
+	/**
+	 * EventBus address prefix where are sent the updates to the directories
+	 */
 	public static final String DIR_EDITED = "fr.upem.jShell.register.edited";
 
 	@SuppressWarnings("unchecked")
@@ -54,6 +60,10 @@ public class WatchDirVerticle extends AbstractVerticle {
 		return (WatchEvent<T>) event;
 	}
 
+	/**
+	 * Load the callback functions for listening to the eventbus.
+	 * Automatically called at deploying time by vertx.
+	 */
 	@Override
 	public void start(Future<Void> startFuture) throws IOException {
 		this.watcher = FileSystems.getDefault().newWatchService();
@@ -88,10 +98,10 @@ public class WatchDirVerticle extends AbstractVerticle {
 		keys.put(key, dir);
 	}
 
-	/**
+	/*
 	 * Process all events for keys queued to the watcher
 	 */
-	void processEvents() {
+	private void processEvents() {
 		for (;;) {
 
 			// wait for key to be signalled

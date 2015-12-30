@@ -17,9 +17,9 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.MessageConsumer;
 
 /**
- * Receive code snippets, evaluates them and produces a result. For each
- * exercise that is currently done by an user, stores it in central memory
- * together with the unit tests.
+ * Retrieves, stores and provides the exercises required by the clients.
+ * Moreover, it receives the requests for evaluating an exercise and delegate the evaluations
+ * with the correct tests.
  * 
  * @author mattia
  *
@@ -28,7 +28,7 @@ public class ExerciseManagerVerticle extends AbstractVerticle {
 	
 	private class Entry{
 		Exercise exercise;
-		MessageConsumer<String> consumer;
+		final MessageConsumer<String> consumer;
 		
 		public Entry(Exercise exercise, MessageConsumer<String> consumer) {
 			this.exercise = exercise;
@@ -40,11 +40,11 @@ public class ExerciseManagerVerticle extends AbstractVerticle {
 	private final int maxNumExercises = 20;
 	//public static final String CLIENT_REGISTER = "fr.upem.jShell.eval.register";
 	/**
-	 * Used to ask to evaluate an exercise
+	 * Address used to ask to evaluate an exercise
 	 */
 	public static final String EVAL_EXERCISE = "fr.upem.jShell.eval.eval";
 	/**
-	 * Address of evaluation responses
+	 * Address prefix of evaluation responses
 	 */
 	public static final String EVALUATED = "fr.upem.jShell.eval.evaluated";
 	/**
@@ -56,15 +56,18 @@ public class ExerciseManagerVerticle extends AbstractVerticle {
 	 */
 	public static final String GET_EXERCISE_QUESTION = "fr.upem.jShell.eval.get_question";
 	/**
-	 * Address of response to get an exercise
+	 * Address prefix of response to get an exercise
 	 */
 	public static final String RETURN_EXERCISE = "fr.upem.jShell.eval.return";
 	/**
-	 * Address of response to a request of the question of an exercise
+	 * Address prefix of response to a request of the question of an exercise
 	 */
 	public static final String RETURN_EXERCISE_QUESTION = "fr.upem.jShell.eval.return_question";
 	
-	
+	/**
+	 * Load the callback functions for listening to the eventbus.
+	 * Automatically called at deploying time by vertx.
+	 */
 	@Override
 	public void start(Future<Void> startFuture) throws Exception {
 		EventBus eb = vertx.eventBus();
@@ -97,7 +100,7 @@ public class ExerciseManagerVerticle extends AbstractVerticle {
 			int id = Integer.valueOf(message.body().toString());
 			try {
 				eb.publish(RETURN_EXERCISE_QUESTION+":"+id, getExerciseById(id).getQuestion());
-			} catch (IOException e) {
+			} catch (	IOException e) {
 				eb.publish(RETURN_EXERCISE_QUESTION+":"+id, null);
 			}
 		});
@@ -165,6 +168,8 @@ public class ExerciseManagerVerticle extends AbstractVerticle {
 			if(e.getMessage().equals("Snippet status is rejected")){
 				return false;
 			} else throw e;
+		} finally {
+			SnippetEval.close();
 		}
 	}
 

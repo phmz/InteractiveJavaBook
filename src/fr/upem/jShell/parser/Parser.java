@@ -37,7 +37,7 @@ public class Parser {
 		HashMap<String, String> map = new HashMap<>();
 		try (Stream<String> lines = Files.lines(src)) {
 			lines.forEach(s -> {
-				String[] tokens = s.split(" ");
+				String[] tokens = s.split("%%%");
 				if (tokens.length < 3) {
 					map.put(tokens[0], tokens[1]);
 				}

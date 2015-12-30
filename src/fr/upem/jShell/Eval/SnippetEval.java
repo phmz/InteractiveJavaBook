@@ -59,6 +59,10 @@ public class SnippetEval {
 		return se.value().equals(result);
 	}
 
+	/**
+	 * Close the jshell object. It must be called when this class method are not needed anymore 
+	 * in the thread.
+	 */
 	public static void close() {
 		jshell.get().close();
 	}
