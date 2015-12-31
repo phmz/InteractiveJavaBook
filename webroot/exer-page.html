@@ -1,17 +1,6 @@
 <html>
  <head>
  <style>
- 	#junit {
- 		position:absolute;
- 		top: 11%;
- 		left:50%;
- 	}
- 	
- 	#result {
-		position:absolute;
- 		top: 78%;
- 		left:9%;
-	}
  	.hidden {
  	  visibility: hidden;
  	}
@@ -83,17 +72,27 @@
  </head>
  <body>
   <div id="title" class="container" role="main">
-  </div>
-  <div id="exercise" class="container">
+  <table>
+	<tr>
+		<td><div id="exercise" >
 	  <textarea id="answer" rows=20 cols=60>Your answser !</textarea>
   </div>
-  <button id="result" value="" disabled="true" class="hidden">
-  </button>
-  <div id="junit">
+  </td>
+  <td>
+   <div id="junit">
   	<button id="junit-button" class='btn btn-primary btn-sm product-edit'>
 		  Show JUnit!
   	</button>
   </div>
   <textarea readonly class="hidden" id="junit-area" rows=20 cols=40> </textarea>
+  </td>
+	</tr>
+	<tr>
+		<td><button id="result" value="" disabled="true" class="hidden">
+  </button></td>
+  <td></td>
+	</tr>
+  </table>
+  </div>
  </body>
 </html>

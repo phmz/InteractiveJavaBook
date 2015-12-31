@@ -163,14 +163,17 @@ public class ExerciseManagerVerticle extends AbstractVerticle {
 	}
 	
 	private boolean isCorrect(Exercise exercise, String solution) {
+		boolean retVal = false;
 		try{
-			return SnippetEval.compareMethod(solution, exercise.getTests());
+			retVal = SnippetEval.compareMethod(solution, exercise.getTests());
+			if(retVal){
+				SnippetEval.close();
+			}
+			return retVal;
 		} catch (IllegalArgumentException e){
 			if(e.getMessage().equals("Snippet status is rejected")){
 				return false;
 			} else throw e;
-		} finally {
-			SnippetEval.close();
 		}
 	}
 
