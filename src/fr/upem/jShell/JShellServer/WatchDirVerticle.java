@@ -75,8 +75,7 @@ public class WatchDirVerticle extends AbstractVerticle {
 			try {
 				watch(Paths.get("webroot", message.body().toString()));
 			} catch (IOException e) {
-				// C'est possible faire rien, on écrit le probléme
-				// On ne veut pas planter l'exécution
+				// We don't want to crash
 				System.err.println("Impossible watching dir " + message.body().toString());
 			}
 		});

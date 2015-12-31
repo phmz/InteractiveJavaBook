@@ -33,22 +33,21 @@ public class MainVerticle extends AbstractVerticle {
 		Router router = Router.router(vertx);
 		eb = vertx.eventBus();
 
-		// Crée le serveur
+		// Create the server
 		vertx.createHttpServer().requestHandler(request -> {
 			// Check if remote client is in the same machine
 			if (accessControl(request)) {
 				// Enables read body for all routes under "/api/exercises
 				router.route("/api/exercises*").handler(BodyHandler.create());
 
-				// Ajoute appel REST get pour l'index
+				// Add request for the index
 				router.get("/api/exercises").handler(this::readIndex);
-				// Route REST pour les requetes des exercises
+				// Add request for the exercises
 				router.get("/api/exercises/:id").handler(this::readOne);
 
 				router.post("/api/register/:id").handler(this::registerConsumer);
 				router.post("/api/solution/:id").handler(this::sendSolutionToExercise);
 
-				// Ajoute route aux resources statiques dans le dossier
 				// exercises
 				router.route().handler(StaticHandler.create());
 				router.accept(request);
@@ -68,7 +67,7 @@ public class MainVerticle extends AbstractVerticle {
 				});
 	}
 
-	// Récuper le fichier Json exercises.txt qui contient la liste des exercises
+	// Get the JSon file which contains the exercises list
 	private void readIndex(RoutingContext routingContext) {
 		MessageConsumer<String> consumer = eb.consumer(IndexVerticle.RESPONSE_INDEX);
 		consumer.handler(message -> {
@@ -79,7 +78,7 @@ public class MainVerticle extends AbstractVerticle {
 		eb.send(IndexVerticle.GET_INDEX, "give me the index");
 	}
 
-	// Handler get pour recuperer un exercise
+	// Handler get for one exercice
 	private void readOne(RoutingContext routingContext) {
 		String id = routingContext.request().getParam("id");
 		MessageConsumer<String> consumer = eb.consumer(ExerciseManagerVerticle.RETURN_EXERCISE + ":" + id);
